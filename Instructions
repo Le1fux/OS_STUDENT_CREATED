@@ -1,0 +1,114 @@
+1. Setup Environment
+
+Make sure your system has the following installed:
+
+gcc (i386 cross-compiler recommended)
+
+nasm
+
+ld (from binutils)
+
+grub-mkrescue
+
+qemu
+
+Check installation:
+
+gcc --version
+nasm -v
+ld --version
+grub-mkrescue --version
+qemu-system-i386 --version
+
+2. Prepare Project Folder
+
+Your folder should contain:
+
+my-simple-os/
+│
+├── boot.asm
+├── kernel.c
+├── linker.ld
+├── Makefile      (optional, but recommended)
+
+
+boot.asm → Bootloader
+
+kernel.c → Kernel with Day 2 keyboard input
+
+linker.ld → Linker script
+
+3. Compile Kernel and Bootloader
+
+If you have a Makefile:
+
+make
+
+
+If no Makefile, manually compile:
+
+# Compile kernel C file
+gcc -m32 -ffreestanding -O2 -c kernel.c -o kernel.o
+
+# Assemble bootloader
+nasm -f elf32 boot.asm -o boot.o
+
+# Link everything
+ld -m elf_i386 -T linker.ld -o kernel.bin boot.o kernel.o
+
+4. Create ISO for GRUB
+
+Create the folder structure for GRUB:
+
+mkdir -p isodir/boot/grub
+cp kernel.bin isodir/boot/
+
+
+Create grub.cfg:
+
+echo 'set timeout=0
+set default=0
+menuentry "MyOS" {
+    multiboot /boot/kernel.bin
+    boot
+}' > isodir/boot/grub/grub.cfg
+
+
+Build ISO:
+
+grub-mkrescue -o os.iso isodir
+
+5. Run OS in QEMU
+
+Boot the ISO:
+
+qemu-system-i386 -cdrom os.iso
+
+
+You should see:
+
+Day 2 OS: Type something!
+
+
+Press keys — they should appear on screen.
+
+6. Optional: Test Shell Commands
+
+If you added simple shell functionality:
+
+Type help → shows available commands
+
+Type clear → clears the screen
+
+7. Exit QEMU
+
+Close the QEMU window normally
+
+Or press Ctrl + A then X
+
+8. Cleanup (Optional)
+
+Remove build files if needed:
+
+rm *.o kernel.bin
+rm -r isodir
